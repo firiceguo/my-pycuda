@@ -1,3 +1,14 @@
+'''
+Description:
+    This is a naive algorithm of image convolution using CUDA.
+
+Usage:
+    $python naive.py
+
+Correctness test:
+    Use the conv_cpu function in utils.py to test the correctness of the GPU output.
+'''
+
 import pycuda.driver as drv
 from pycuda import compiler, gpuarray, tools, autoinit
 from pycuda.compiler import SourceModule
@@ -9,13 +20,25 @@ IMAGE_W = 15
 
 
 def Naive(IMAGE_W, knl_template):
-    kernel_cpu = np.random.randn(KERNEL_L, KERNEL_L).astype(np.float32)
-    pic_cpu = np.random.randn(IMAGE_W, IMAGE_W).astype(np.float32)
+    '''
+    Get the runtime of conventional convolution algorithm.
+    input:
+        int    IMAGE_W      -- the width of image
+        string knl_template -- a python string of kernel function written by CUDA C
+    output:
+        float secs  -- the runtime usage (microseconds)
+    '''
 
+    # random init image and kernel matrix
+    pic_cpu = np.random.randn(IMAGE_W, IMAGE_W).astype(np.float32)
+    kernel_cpu = np.random.randn(KERNEL_L, KERNEL_L).astype(np.float32)
+
+    # convert the scale of inputs, from 2D to 1D
     kernel_s = np.reshape(kernel_cpu, (-1))
     pic_s = np.reshape(pic_cpu, (-1))
     out_s = np.zeros_like(pic_s)
 
+    # init the GPU memory and load the data from CPU
     kernel_gpu = drv.mem_alloc(kernel_s.nbytes)
     pic_gpu = drv.mem_alloc(pic_s.nbytes)
     out_gpu = drv.mem_alloc(pic_s.nbytes)
@@ -24,9 +47,11 @@ def Naive(IMAGE_W, knl_template):
     drv.memcpy_htod(pic_gpu, pic_s)
     drv.memcpy_htod(out_gpu, out_s)
 
+    # build the kernel function
     mod = compiler.SourceModule(knl_template)
     niv_conv = mod.get_function("niv_conv")
 
+    # run the kernel function and compute the runtime
     start = drv.Event()
     end = drv.Event()
     start.record()
@@ -36,6 +61,7 @@ def Naive(IMAGE_W, knl_template):
     end.synchronize()
     secs = start.time_till(end)
 
+    # load the output from GPU memory
     outgpu = np.zeros_like(out_s)
     drv.memcpy_dtoh(outgpu, out_gpu)
     outgpu = np.reshape(outgpu, (IMAGE_W, IMAGE_W))

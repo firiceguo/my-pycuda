@@ -1,3 +1,19 @@
+'''
+Description:
+    This is the redundant boundary algorithm of image convolution using CUDA.
+
+Usage:
+    $python Redundant.py
+
+Note:
+    When changing the radius of kernel, the width of image and the number of block,
+    please ensure that IMAGE_W >= grid[0] and (IMAGE_W mod grid[0]) == 0,
+    or there will be an AssertionError.
+
+Correctness test:
+    Use the conv_cpu function in utils.py to test the correctness of the GPU output.
+'''
+
 import pycuda.driver as drv
 from pycuda import compiler, autoinit
 from pycuda.compiler import SourceModule
@@ -9,6 +25,14 @@ IMAGE_W = 16
 
 
 def getDataLenPerBlk(grid, IMAGE_W):
+    '''
+    Get the length of data should be included in one block.
+    input:
+        tuple grid    -- the block information in one grid, will used by kernel function
+        int   IMAGE_W -- the width of image
+    output:
+        int DataLenPerBlk -- the length of data in one block
+    '''
     blockNum = grid[0]
     n = IMAGE_W / blockNum + int(IMAGE_W % blockNum > 0)
     DataLenPerBlk = IMAGE_W * n
@@ -16,13 +40,25 @@ def getDataLenPerBlk(grid, IMAGE_W):
 
 
 def Redundant(IMAGE_W, knl_template):
+    '''
+    Get the runtime of redundant boundary convolution algorithm.
+    input:
+        int    IMAGE_W      -- the width of image
+        string knl_template -- a python string of kernel function written by CUDA C
+    output:
+        float secs -- the runtime usage (microseconds) 
+    '''
+
+    # random init image and kernel matrix
     kernel_cpu = np.random.randn(KERNEL_L, KERNEL_L).astype(np.float32)
     pic_cpu = np.random.randn(IMAGE_W, IMAGE_W).astype(np.float32)
 
+    # convert the scale of inputs, from 2D to 1D
     kernel_s = np.reshape(kernel_cpu, (-1))
     pic_s = np.reshape(pic_cpu, (-1))
     out_s = np.zeros_like(pic_s)
 
+    # init the GPU memory and load the data from CPU
     kernel_gpu = drv.mem_alloc(kernel_s.nbytes)
     pic_gpu = drv.mem_alloc(pic_s.nbytes)
     out_gpu = drv.mem_alloc(pic_s.nbytes)
@@ -31,10 +67,11 @@ def Redundant(IMAGE_W, knl_template):
     drv.memcpy_htod(pic_gpu, pic_s)
     drv.memcpy_htod(out_gpu, out_s)
 
+    # build the kernel function
     mod = compiler.SourceModule(knl_template)
-
     redd_conv = mod.get_function("redd_conv")
 
+    # run the kernel function and compute the runtime
     start = drv.Event()
     end = drv.Event()
     start.record()
@@ -44,6 +81,7 @@ def Redundant(IMAGE_W, knl_template):
     end.synchronize()
     secs = start.time_till(end)
 
+    # load the output from GPU memory
     outgpu = np.zeros_like(out_s)
     drv.memcpy_dtoh(outgpu, out_gpu)
     outgpu = np.reshape(outgpu, (IMAGE_W, IMAGE_W))
@@ -58,8 +96,8 @@ def Redundant(IMAGE_W, knl_template):
 if __name__ == '__main__':
     block = (1024, 1, 1)
     grid = (16, 1)
-    # IMAGE_W = 512
 
+    # test the parameters
     ParaTestPass = (IMAGE_W >= grid[0]) and (IMAGE_W % grid[0] == 0)
     assert ParaTestPass, "Please retry with IMAGE_W >= grid[0] and (IMAGE_W mod grid[0]) == 0."
 

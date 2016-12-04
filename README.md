@@ -56,7 +56,7 @@ Basiclly, I followed the [official quick start guide](https://developer.nvidia.c
     No command 'nvcc' found
     ```
     
-    To avoid this error, we should add a line in `~/.bashrc` if you are using bash as your default shell:
+    To avoid this error, we should add two lines in `~/.bashrc` if you are using bash as your default shell:
     
     ```
     export LD_LIBRARY_PATH=/usr/local/cuda/lib

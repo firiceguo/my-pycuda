@@ -1,3 +1,20 @@
+'''
+Description:
+    This is the separable filter algorithm of image convolution using CUDA.
+
+Usage:
+    $python filter.py
+
+Note:
+    When changing the scale of tile, and the width of image,
+    please ensure that IMAGE_W >= TILE_W and IMAGE_W % TILE_W == 0,
+    or there will be an AssertionError.
+    Also, I haven't tried the situation of TILE_W != TILE_H.
+
+Correctness test:
+    Use the FilTest function in utils.py to test the correctness of the GPU output.
+'''
+
 import numpy as np
 import pycuda.autoinit
 import pycuda.driver as drv
@@ -10,16 +27,34 @@ IMAGE_W = 16
 TILE_W = TILE_H = 16
 
 
-def convolution_cuda(pic, filterx, filtery, IMAGE_W):
+def conv_filter(pic, filterx, filtery, IMAGE_W):
+    '''
+    Get the runtime of separable filter convolution algorithm.
+    input:
+        np.ndarray pic[IMAGE_W][IMAGE_W] -- the input image matrix
+        np.ndarray filterx[KERNEL_L]     -- the input row vector
+        np.ndarray filtery[KERNEL_L]     -- the input column vector
+        int        IMAGE_W               -- the width of image
+    output:
+        float secgpu -- the runtime usage (microseconds) 
+    '''
+
+    # test the input parameters
     assert pic.dtype == 'float32', 'source image must be float32'
     assert filterx.shape == filtery.shape == (KERNEL_L, ), 'Try changing KERNEL_L'
     assert IMAGE_W >= TILE_W and IMAGE_W % TILE_W == 0, 'Ensure that IMAGE_W >= TILE_W and IMAGE_W % TILE_W == 0'
+    assert TILE_W == TILE_H, 'Ensure that TILE_W == TILE_H'
+
+    # convert the scale of inputs, from 2D to 1D
     pic_vector = np.reshape(pic, (-1))
     filterx = np.reshape(filterx, (-1))
     filtery = np.reshape(filtery, (-1))
+
+    # init the intermediate image and output image
     intermediateImage = np.zeros_like(pic_vector)
     destImage = np.zeros_like(pic_vector)
 
+    # init the GPU memory and load the data from CPU
     sourceImage_gpu = drv.mem_alloc(pic_vector.nbytes)
     intermediateImage_gpu = drv.mem_alloc(intermediateImage.nbytes)
     destImage_gpu = drv.mem_alloc(destImage.nbytes)
@@ -32,9 +67,11 @@ def convolution_cuda(pic, filterx, filtery, IMAGE_W):
     drv.memcpy_htod(filterx_gpu, filterx)
     drv.memcpy_htod(filtery_gpu, filtery)
 
+    # calculate the grid and block scale according to the width of image and scale of tile
     grids = (IMAGE_W / TILE_W * IMAGE_W / TILE_H, 1)
     blocks = (TILE_W * (TILE_H + 2 * KERNEL_R), 1, 1)
 
+    # run the kernel function and compute the runtime
     start = drv.Event()
     end = drv.Event()
     start.record()
@@ -46,6 +83,7 @@ def convolution_cuda(pic, filterx, filtery, IMAGE_W):
     end.synchronize()
     secgpu = start.time_till(end)
 
+    # load the output from GPU memory
     out = np.zeros_like(pic_vector)
     drv.memcpy_dtoh(out, destImage_gpu)
     out = np.reshape(out, (IMAGE_W, IMAGE_W))
@@ -177,5 +215,5 @@ __global__ void convolutionColGPU(
 
     pic = np.random.randn(IMAGE_W, IMAGE_W).astype(np.float32)
     filterx = np.random.randn(KERNEL_L).astype(np.float32)
-    secs = convolution_cuda(pic, filterx, filterx, IMAGE_W)
+    secs = conv_filter(pic, filterx, filterx, IMAGE_W)
     print("IMAGE_W:%d:Time:%f:ms" % (IMAGE_W, secs))

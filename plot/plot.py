@@ -2,6 +2,11 @@ import matplotlib.pyplot as plt
 
 
 def getData(file):
+    '''
+    Get the x-axis and time usage information from log.
+    input file - log format: 'IMAGE_W:1:Time:0.048934:ms'
+    output: x is a list of IMAGE_W, time is a list of microsecond. 
+    '''
     x = []
     time = []
     f = open(file, 'r')
