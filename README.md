@@ -34,45 +34,45 @@ Basiclly, I followed the [official quick start guide](https://developer.nvidia.c
 
 1. Fail to run `make` command:  
 
-The error is:
+    The error is:
 
-```
->>> WARNING - libGL.so not found, refer to CUDA Getting Started Guide for how to find and install them. <<<
->>> WARNING - libGLU.so not found, refer to CUDA Getting Started Guide for how to find and install them. <<<
->>> WARNING - libX11.so not found, refer to CUDA Getting Started Guide for how to find and install them. <<<
-```
+    ```
+    >>> WARNING - libGL.so not found, refer to CUDA Getting Started Guide for how to find and install them. <<<
+    >>> WARNING - libGLU.so not found, refer to CUDA Getting Started Guide for how to find and install them. <<<
+    >>> WARNING - libX11.so not found, refer to CUDA Getting Started Guide for how to find and install them. <<<
+    ```
 
-To avoid this error, we should add a line in `~/.bashrc` if you are using bash as your default shell:
+    To avoid this error, we should add a line in `~/.bashrc` if you are using bash as your default shell:
 
-```
-export GLPATH=/usr/lib
-```
+    ```
+    export GLPATH=/usr/lib
+    ```
 
 2. No 'nvcc' error:
 
-The error is:
-
-```
-No command 'nvcc' found
-```
-
-To avoid this error, we should add a line in `~/.bashrc` if you are using bash as your default shell:
-
-```
-export LD_LIBRARY_PATH=/usr/local/cuda/lib
-export PATH=$PATH:/usr/local/cuda/bin
-```
+    The error is:
+    
+    ```
+    No command 'nvcc' found
+    ```
+    
+    To avoid this error, we should add a line in `~/.bashrc` if you are using bash as your default shell:
+    
+    ```
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib
+    export PATH=$PATH:/usr/local/cuda/bin
+    ```
 
 3. More lines should be included in `~/.bashrc`:
 
-```
-export PATH=$PATH:/usr/local/cuda/bin
-export CUDA_ROOT=/usr/local/cuda-8.0
-export PATH=$PATH:/usr/local/cuda-8.0/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-8.0/lib64:/usr/local/cuda-8.0/lib
-export CPATH=$CPATH:/usr/local/cuda-8.0/include
-export CUDA_INC_DIR=/usr/local/cuda-8.0/bin:$CUDA_INC_DIR
-```
+    ```
+    export PATH=$PATH:/usr/local/cuda/bin
+    export CUDA_ROOT=/usr/local/cuda-8.0
+    export PATH=$PATH:/usr/local/cuda-8.0/bin
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-8.0/lib64:/usr/local/cuda-8.0/lib
+    export CPATH=$CPATH:/usr/local/cuda-8.0/include
+    export CUDA_INC_DIR=/usr/local/cuda-8.0/bin:$CUDA_INC_DIR
+    ```
 
 
 ## Algorithms
