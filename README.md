@@ -36,7 +36,7 @@ Basiclly, I followed the [official quick start guide](https://developer.nvidia.c
 
     The error is:
 
-    ```
+    ```bash
     >>> WARNING - libGL.so not found, refer to CUDA Getting Started Guide for how to find and install them. <<<
     >>> WARNING - libGLU.so not found, refer to CUDA Getting Started Guide for how to find and install them. <<<
     >>> WARNING - libX11.so not found, refer to CUDA Getting Started Guide for how to find and install them. <<<
@@ -44,7 +44,7 @@ Basiclly, I followed the [official quick start guide](https://developer.nvidia.c
 
     To avoid this error, we should add a line in `~/.bashrc` if you are using bash as your default shell:
 
-    ```
+    ```bash
     export GLPATH=/usr/lib
     ```
 
@@ -52,20 +52,20 @@ Basiclly, I followed the [official quick start guide](https://developer.nvidia.c
 
     The error is:
     
-    ```
+    ```bash
     No command 'nvcc' found
     ```
     
     To avoid this error, we should add two lines in `~/.bashrc` if you are using bash as your default shell:
     
-    ```
+    ```bash
     export LD_LIBRARY_PATH=/usr/local/cuda/lib
     export PATH=$PATH:/usr/local/cuda/bin
     ```
 
 3. More lines should be included in `~/.bashrc`:
 
-    ```
+    ```bash
     export PATH=$PATH:/usr/local/cuda/bin
     export CUDA_ROOT=/usr/local/cuda-8.0
     export PATH=$PATH:/usr/local/cuda-8.0/bin
